@@ -110,7 +110,7 @@ cvRANSACUpdateNumIters( double p, double ep,
 
 bool CvModelEstimator2::runRANSAC( const CvMat* m1, const CvMat* m2, CvMat* model,
                                     CvMat* mask0, double reprojThreshold,
-                                    double confidence, int maxIters )
+                                    double confidence, int maxIters, std::vector<int>& chosenIndices )
 {
     bool result = false;
     cv::Ptr<CvMat> mask = cvCloneMat(mask0);
@@ -145,7 +145,7 @@ bool CvModelEstimator2::runRANSAC( const CvMat* m1, const CvMat* m2, CvMat* mode
         int i, goodCount, nmodels;
         if( count > modelPoints )
         {
-            bool found = getSubset( m1, m2, ms1, ms2, 300 );
+            bool found = getSubset( m1, m2, ms1, ms2, 300, chosenIndices );
             if( !found )
             {
                 if( iter == 0 )
@@ -179,6 +179,10 @@ bool CvModelEstimator2::runRANSAC( const CvMat* m1, const CvMat* m2, CvMat* mode
         if( mask != mask0 )
             cvCopy( mask, mask0 );
         result = true;
+    }
+    else
+    {
+        chosenIndices.clear();
     }
 
     return result;
@@ -272,7 +276,7 @@ bool CvModelEstimator2::runLMeDS( const CvMat* m1, const CvMat* m2, CvMat* model
 
 
 bool CvModelEstimator2::getSubset( const CvMat* m1, const CvMat* m2,
-                                   CvMat* ms1, CvMat* ms2, int maxAttempts )
+                                   CvMat* ms1, CvMat* ms2, int maxAttempts, std::vector<int>& chosenIndices )
 {
     cv::AutoBuffer<int> _idx(modelPoints);
     int* idx = _idx;
@@ -312,7 +316,11 @@ bool CvModelEstimator2::getSubset( const CvMat* m1, const CvMat* m2,
             continue;
         break;
     }
-
+    chosenIndices.resize(modelPoints);
+    for(int myindex = 0; myindex < modelPoints; myindex++)
+    {
+        chosenIndices[myindex] = idx[myindex];
+    }
     return i == modelPoints && iters < maxAttempts;
 }
 

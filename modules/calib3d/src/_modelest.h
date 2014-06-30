@@ -56,7 +56,7 @@ public:
                            CvMat* mask, double confidence=0.99, int maxIters=2000 );
     virtual bool runRANSAC( const CvMat* m1, const CvMat* m2, CvMat* model,
                             CvMat* mask, double threshold,
-                            double confidence=0.99, int maxIters=2000 );
+                            double confidence=0.99, int maxIters=2000, std::vector<int>& chosenIndices =  std::vector<int>());
     virtual bool refine( const CvMat*, const CvMat*, CvMat*, int ) { return true; }
     virtual void setSeed( int64 seed );
 
@@ -67,7 +67,7 @@ protected:
                              const CvMat* model, CvMat* error,
                              CvMat* mask, double threshold );
     virtual bool getSubset( const CvMat* m1, const CvMat* m2,
-                            CvMat* ms1, CvMat* ms2, int maxAttempts=1000 );
+                            CvMat* ms1, CvMat* ms2, int maxAttempts=1000, std::vector<int>& chosenIndices = std::vector<int>());
     virtual bool checkSubset( const CvMat* ms1, int count );
 
     CvRNG rng;

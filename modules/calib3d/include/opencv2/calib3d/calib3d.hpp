@@ -141,7 +141,8 @@ CVAPI(int) cvFindHomography( const CvMat* src_points,
                              CvMat* homography,
                              int method CV_DEFAULT(0),
                              double ransacReprojThreshold CV_DEFAULT(3),
-                             CvMat* mask CV_DEFAULT(0));
+                             CvMat* mask CV_DEFAULT(0),
+                             int* chosenIndices  CV_DEFAULT(0));
 
 /* Computes RQ decomposition for 3x3 matrices */
 CVAPI(void) cvRQDecomp3x3( const CvMat *matrixM, CvMat *matrixR, CvMat *matrixQ,
@@ -422,7 +423,7 @@ enum
 //! computes the best-fit perspective transformation mapping srcPoints to dstPoints.
 CV_EXPORTS_W Mat findHomography( InputArray srcPoints, InputArray dstPoints,
                                  int method=0, double ransacReprojThreshold=3,
-                                 OutputArray mask=noArray());
+                                 OutputArray mask=noArray(), std::vector<int>& chosenIndices = std::vector<int>());
 
 //! variant of findHomography for backward compatibility
 CV_EXPORTS Mat findHomography( InputArray srcPoints, InputArray dstPoints,

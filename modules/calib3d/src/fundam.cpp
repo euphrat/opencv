@@ -217,7 +217,7 @@ bool CvHomographyEstimator::refine( const CvMat* m1, const CvMat* m2, CvMat* mod
 CV_IMPL int
 cvFindHomography( const CvMat* objectPoints, const CvMat* imagePoints,
                   CvMat* __H, int method, double ransacReprojThreshold,
-                  CvMat* mask )
+                  CvMat* mask, int* chosenIndices )
 {
     const double confidence = 0.995;
     const int maxIters = 2000;
@@ -254,12 +254,13 @@ cvFindHomography( const CvMat* objectPoints, const CvMat* imagePoints,
         cvSet( tempMask, cvScalarAll(1.) );
 
     CvHomographyEstimator estimator(4);
+    vector<int> chosenIndices_;
     if( count == 4 )
         method = 0;
     if( method == CV_LMEDS )
         result = estimator.runLMeDS( M, m, &matH, tempMask, confidence, maxIters );
     else if( method == CV_RANSAC )
-        result = estimator.runRANSAC( M, m, &matH, tempMask, ransacReprojThreshold, confidence, maxIters);
+        result = estimator.runRANSAC( M, m, &matH, tempMask, ransacReprojThreshold, confidence, maxIters, chosenIndices_);
     else
         result = estimator.runKernel( M, m, &matH ) > 0;
 
@@ -283,7 +284,8 @@ cvFindHomography( const CvMat* objectPoints, const CvMat* imagePoints,
         else
            cvTranspose( tempMask, mask );
     }
-
+    assert(chosenIndices_.size() == 4);
+    memcpy(chosenIndices, &chosenIndices_[0], 4 * sizeof(int));
     return (int)result;
 }
 
@@ -1066,7 +1068,7 @@ CV_IMPL void cvConvertPointsHomogeneous( const CvMat* src, CvMat* dst )
 }
 
 cv::Mat cv::findHomography( InputArray _points1, InputArray _points2,
-                            int method, double ransacReprojThreshold, OutputArray _mask )
+                            int method, double ransacReprojThreshold, OutputArray _mask, std::vector<int>& chosenIndices )
 {
     Mat points1 = _points1.getMat(), points2 = _points2.getMat();
     int npoints = points1.checkVector(2);
@@ -1081,7 +1083,9 @@ cv::Mat cv::findHomography( InputArray _points1, InputArray _points2,
         _mask.create(npoints, 1, CV_8U, -1, true);
         p_mask = &(c_mask = _mask.getMat());
     }
-    bool ok = cvFindHomography( &_pt1, &_pt2, &matH, method, ransacReprojThreshold, p_mask ) > 0;
+    vector<int> chosenIndices_(4);
+    bool ok = cvFindHomography( &_pt1, &_pt2, &matH, method, ransacReprojThreshold, p_mask, &chosenIndices_[0] ) > 0;
+    chosenIndices = chosenIndices_;
     if( !ok )
         H = Scalar(0);
     return H;
